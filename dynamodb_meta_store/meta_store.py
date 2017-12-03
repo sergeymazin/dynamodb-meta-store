@@ -204,7 +204,7 @@ class DynamoDBMetaStore(object):
         try:
             item = response['Item']
         except KeyError:
-            raise ItemNotFound("Item %s not found" % self.store_name)
+            raise ItemNotFound("Item %s not found" % self.option)
 
         del item[self.store_key]
         del item[self.option_key]
