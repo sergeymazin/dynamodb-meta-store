@@ -18,7 +18,7 @@ Store and update metadata in DynamoDB
     store.set('graylog', obj)
     # Returns: True
 
-    # Get the 'db' option and all it's values
+    # Get the 'graylog' metadata object
     store.get('graylog')
     # Returns: {'host': '127.0.0.1', 'port': 12201}
 
