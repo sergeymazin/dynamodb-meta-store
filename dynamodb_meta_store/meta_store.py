@@ -12,27 +12,46 @@ class DynamoDBMetaStore(object):
     """ DynamoDB Config Store instance """
 
     def __init__(
-            self, aws_region, table_name, store_name,
+            self, table_name, store_name,
+            aws_region=None, connection=None,
             store_key='_store', option_key='_option',
-            read_units=1, write_units=1):
+            create_table=False, read_units=1, write_units=1
+    ):
         """ Constructor for the config store
-        :type aws_region: str
-        :param aws_region: AWS region to use
         :type table_name: str
         :param table_name: Name of the DynamoDB table to use
         :type store_name: str
         :param store_name: Name of the DynamoDB Config Store
+        :type aws_region: str
+        :param aws_region: AWS region to use
+        :type connection: boto3.resources.factory.dynamodb.ServiceResource
+        :param connection: Predefined connection to DynamoDB using boto3 library
         :type store_key: str
         :param store_key: Key name for the store in DynamoDB. Default _store
         :type option_key: str
         :param option_key: Key name for the option in DynamoDB. Default _option
+        :type create_table: bool
+        :param create_table: Create DynamoDB table if not exists
+        :type read_units: int
+        :param read_units: Number of read units to provision to created table
+        :type write_units: int
+        :param write_units: Number of write units to provision to created table
         :returns: None
         """
-        self.connection = boto3.resource('dynamodb', aws_region)
+        if connection is None:
+            if aws_region is None:
+                self.connection = boto3.resource('dynamodb')
+            else:
+                self.connection = boto3.resource('dynamodb', aws_region)
+        else:
+            if aws_region is not None:
+                raise Exception("Parameters connection and aws_region cannot be defined together")
+            self.connection = connection
         self.table_name = table_name
         self.store_name = store_name
         self.store_key = store_key
         self.option_key = option_key
+        self.create_table = create_table
         self.read_units = read_units
         self.write_units = write_units
         self._initialize_table()
@@ -65,8 +84,11 @@ class DynamoDBMetaStore(object):
             if not hash_found or not range_found:
                 raise MisconfiguredSchemaException
 
-        except self.connection.meta.client.exceptions.ResourceNotFoundException:
-            self.table = self._create_table()
+        except self.connection.meta.client.exceptions.ResourceNotFoundException as e:
+            if self.create_table:
+                self.table = self._create_table()
+            else:
+                raise e
 
         self.table.reload()
 

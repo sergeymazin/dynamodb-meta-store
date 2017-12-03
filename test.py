@@ -2,14 +2,10 @@ from dynamodb_meta_store import DynamoDBMetaStore
 from dynamodb_meta_store.exceptions import ItemNotFound, MisconfiguredSchemaException
 
 import unittest
-import uuid
-
-aws_region = 'us-east-2'
-table_prefix = 'unittest_'
+import boto3
 
 
-def generate_table_name():
-    return table_prefix + str(uuid.uuid4())
+connection = boto3.resource('dynamodb', endpoint_url='http://localhost:8000')
 
 
 class TestCustomThroughput(unittest.TestCase):
@@ -17,18 +13,19 @@ class TestCustomThroughput(unittest.TestCase):
     def setUp(self):
 
         # Configuration options
-        self.table_name = generate_table_name()
+        self.table_name = 'test'
         self.store_name = 'test'
         self.read_units = 10
         self.write_units = 8
 
         # Instanciate the store
         self.store = DynamoDBMetaStore(
-            aws_region=aws_region,
+            connection=connection,
             table_name=self.table_name,
             store_name=self.store_name,
             read_units=self.read_units,
-            write_units=self.write_units
+            write_units=self.write_units,
+            create_table=True
         )
 
         # Get an Table instance for validation
@@ -51,18 +48,20 @@ class TestCustomStoreAndOptionKeys(unittest.TestCase):
     def setUp(self):
 
         # Configuration options
-        self.table_name = generate_table_name()
+        self.table_name = 'test'
         self.store_name = 'test'
         self.store_key = '_s'
         self.option_key = '_o'
 
         # Instanciate the store
         self.store = DynamoDBMetaStore(
-            aws_region=aws_region,
+            connection=connection,
             table_name=self.table_name,
             store_name=self.store_name,
             store_key=self.store_key,
-            option_key=self.option_key)
+            option_key=self.option_key,
+            create_table=True
+        )
 
         # Get an Table instance for validation
         self.table = self.store.table
@@ -100,14 +99,16 @@ class TestDefaultThroughput(unittest.TestCase):
     def setUp(self):
 
         # Configuration options
-        self.table_name = generate_table_name()
+        self.table_name = 'test'
         self.store_name = 'test'
 
         # Instanciate the store
         self.store = DynamoDBMetaStore(
-            aws_region=aws_region,
+            connection=connection,
             table_name=self.table_name,
-            store_name=self.store_name)
+            store_name=self.store_name,
+            create_table=True
+        )
 
         # Get an Table instance for validation
         self.table = self.store.table
@@ -129,14 +130,16 @@ class TestGetOption(unittest.TestCase):
     def setUp(self):
 
         # Configuration options
-        self.table_name = generate_table_name()
+        self.table_name = 'test'
         self.store_name = 'test'
 
         # Instanciate the store
         self.store = DynamoDBMetaStore(
-            aws_region=aws_region,
+            connection=connection,
             table_name=self.table_name,
-            store_name=self.store_name)
+            store_name=self.store_name,
+            create_table=True
+        )
 
         # Get an Table instance for validation
         self.table = self.store.table
@@ -178,14 +181,16 @@ class TestGetOptionAndKeysSubset(unittest.TestCase):
     def setUp(self):
 
         # Configuration options
-        self.table_name = generate_table_name()
+        self.table_name = 'test'
         self.store_name = 'test'
 
         # Instanciate the store
         self.store = DynamoDBMetaStore(
-            aws_region=aws_region,
+            connection=connection,
             table_name=self.table_name,
-            store_name=self.store_name)
+            store_name=self.store_name,
+            create_table=True
+        )
 
         # Get an Table instance for validation
         self.table = self.store.table
@@ -222,14 +227,16 @@ class TestGetFullStore(unittest.TestCase):
     def setUp(self):
 
         # Configuration options
-        self.table_name = generate_table_name()
+        self.table_name = 'test'
         self.store_name = 'test'
 
         # Instanciate the store
         self.store = DynamoDBMetaStore(
-            aws_region=aws_region,
+            connection=connection,
             table_name=self.table_name,
-            store_name=self.store_name)
+            store_name=self.store_name,
+            create_table=True
+        )
 
         # Get an Table instance for validation
         self.table = self.store.table
@@ -279,14 +286,16 @@ class TestMisconfiguredSchemaException(unittest.TestCase):
     def setUp(self):
 
         # Configuration options
-        self.table_name = generate_table_name()
+        self.table_name = 'test'
         self.store_name = 'test'
 
         # Instanciate the store
         self.store = DynamoDBMetaStore(
-            aws_region=aws_region,
+            connection=connection,
             table_name=self.table_name,
-            store_name=self.store_name)
+            store_name=self.store_name,
+            create_table=True
+        )
 
         # Get an Table instance for validation
         self.table = self.store.table
@@ -295,19 +304,23 @@ class TestMisconfiguredSchemaException(unittest.TestCase):
         """ Test that an exception is raised if the store key is not an hash """
         with self.assertRaises(MisconfiguredSchemaException):
             DynamoDBMetaStore(
-                aws_region=aws_region,
+                connection=connection,
                 table_name=self.table_name,
                 store_name=self.store_name,
-                store_key='test')
+                store_key='test',
+                create_table=True
+            )
 
     def test_misconfigured_schema_option_key(self):
         """ Test that an exception is raised if the option key isn't a range """
         with self.assertRaises(MisconfiguredSchemaException):
             DynamoDBMetaStore(
-                aws_region=aws_region,
+                connection=connection,
                 table_name=self.table_name,
                 store_name=self.store_name,
-                option_key='test')
+                option_key='test',
+                create_table=True
+            )
 
     def tearDown(self):
         """ Tear down the test case """
@@ -319,14 +332,16 @@ class TestSet(unittest.TestCase):
     def setUp(self):
 
         # Configuration options
-        self.table_name = generate_table_name()
+        self.table_name = 'test'
         self.store_name = 'test'
 
         # Instanciate the store
         self.store = DynamoDBMetaStore(
-            aws_region=aws_region,
+            connection=connection,
             table_name=self.table_name,
-            store_name=self.store_name)
+            store_name=self.store_name,
+            create_table=True
+        )
 
         # Get an Table instance for validation
         self.table = self.store.table

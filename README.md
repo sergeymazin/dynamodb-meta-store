@@ -6,9 +6,18 @@ Store and update metadata in DynamoDB
 
 # Usage
     store = DynamoDBMetaStore(
-        'us-east-1',                # AWS region to connect to
         table_name='test',          # DynamoDB table name
-        store_name='store')         # Store name
+        store_name='infra')         # Store name
+
+    or
+    
+    import boto3
+    conn = boto3.resource('dynamodb', 'us-west-1')
+    store = DynamoDBMetaStore(
+        table_name='test',          # DynamoDB table name
+        store_name='infra',         # Store name
+        connection=conn)            # Connection to DynamoDB resource
+
 
     # Set the 'graylog' metadata object
     obj = {
