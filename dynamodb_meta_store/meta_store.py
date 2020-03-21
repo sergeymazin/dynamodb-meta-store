@@ -14,7 +14,7 @@ class DynamoDBMetaStore(object):
     def __init__(
             self, table_name, store_name,
             aws_region=None, connection=None,
-            store_key='_store', option_key='_option',
+            store_key="_store", option_key="_option",
             create_table=False, read_units=1, write_units=1
     ):
         """ Constructor for the config store
@@ -40,9 +40,9 @@ class DynamoDBMetaStore(object):
         """
         if connection is None:
             if aws_region is None:
-                self.connection = boto3.resource('dynamodb')
+                self.connection = boto3.resource("dynamodb")
             else:
-                self.connection = boto3.resource('dynamodb', aws_region)
+                self.connection = boto3.resource("dynamodb", aws_region)
         else:
             if aws_region is not None:
                 raise Exception("Parameters connection and aws_region cannot be defined together")
@@ -66,19 +66,19 @@ class DynamoDBMetaStore(object):
             schema = self.table.key_schema
 
             # Validate that the table is in ACTIVE state
-            if status not in ['ACTIVE', 'UPDATING']:
+            if status not in ["ACTIVE", "UPDATING"]:
                 raise TableNotReadyException
 
             # Validate schema
             hash_found = False
             range_found = False
             for key in schema:
-                if key['AttributeName'] == self.store_key:
-                    if key['KeyType'] == 'HASH':
+                if key["AttributeName"] == self.store_key:
+                    if key["KeyType"] == "HASH":
                         hash_found = True
 
-                if key['AttributeName'] == self.option_key:
-                    if key['KeyType'] == 'RANGE':
+                if key["AttributeName"] == self.option_key:
+                    if key["KeyType"] == "RANGE":
                         range_found = True
 
             if not hash_found or not range_found:
@@ -100,27 +100,27 @@ class DynamoDBMetaStore(object):
             TableName=self.table_name,
             KeySchema=[
                 {
-                    'AttributeName': self.store_key,
-                    'KeyType': 'HASH'
+                    "AttributeName": self.store_key,
+                    "KeyType": "HASH"
                 },
                 {
-                    'AttributeName': self.option_key,
-                    'KeyType': 'RANGE'
+                    "AttributeName": self.option_key,
+                    "KeyType": "RANGE"
                 }
             ],
             AttributeDefinitions=[
                 {
-                    'AttributeName': self.store_key,
-                    'AttributeType': 'S'
+                    "AttributeName": self.store_key,
+                    "AttributeType": "S"
                 },
                 {
-                    'AttributeName': self.option_key,
-                    'AttributeType': 'S'
+                    "AttributeName": self.option_key,
+                    "AttributeType": "S"
                 },
             ],
             ProvisionedThroughput={
-                'ReadCapacityUnits': self.read_units,
-                'WriteCapacityUnits': self.write_units
+                "ReadCapacityUnits": self.read_units,
+                "WriteCapacityUnits": self.write_units
             }
         )
 
@@ -147,7 +147,7 @@ class DynamoDBMetaStore(object):
         item[self.option_key] = option
 
         response = self.table.put_item(Item=item)
-        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+        if response["ResponseMetadata"]["HTTPStatusCode"] == 200:
             return True
         else:
             return False
@@ -162,14 +162,14 @@ class DynamoDBMetaStore(object):
         :param option: Name of the configuration option, all options if None
         :type keys: list
         :param keys: List of keys to return (used to get subsets of keys)
-        :returns: dict -- Dictionary with all data; {'key': 'value'}
+        :returns: dict -- Dictionary with all data; {"key": "value"}
         """
         if option:
             items = self.get_option(option=option, keys=keys)
             return replace_decimals(items)
         else:
             items = {}
-            partition_filter = {'key': self.store_key, 'value': self.store_name}
+            partition_filter = {"key": self.store_key, "value": self.store_name}
             response_items = self.query(partition_filter=partition_filter)
             for item in response_items:
                 option = item[self.option_key]
@@ -186,13 +186,13 @@ class DynamoDBMetaStore(object):
         """ Get a specific option from the store.
         A query towards DynamoDB will always be executed when this
         method is called.
-        get_option('a') == get(option='a')
-        get_option('a', keys=['b', 'c']) == get(option='a', keys=['b', 'c'])
+        get_option("a") == get(option="a")
+        get_option("a", keys=["b", "c"]) == get(option="a", keys=["b", "c"])
         :type option: str
         :param option: Name of the configuration option
         :type keys: list
         :param keys: List of keys to return (used to get subsets of keys)
-        :returns: dict -- Dictionary with all data; {'key': 'value'}
+        :returns: dict -- Dictionary with all data; {"key": "value"}
         """
 
         response = self.table.get_item(
@@ -202,7 +202,7 @@ class DynamoDBMetaStore(object):
             },
         )
         try:
-            item = response['Item']
+            item = response["Item"]
         except KeyError:
             raise ItemNotFound("Item %s not found" % self.option)
 
@@ -226,14 +226,14 @@ class DynamoDBMetaStore(object):
         PARAMS:
         @table_name: name of the table
         @sort_key: Dict containing key and val of sort key
-        e.g. {'name': 'uuid', 'value': '077f4450-96ee-4ba8-8faa-831f6350a860'}
+        e.g. {"name": "uuid", "value": "077f4450-96ee-4ba8-8faa-831f6350a860"}
         @partition_key: Dict containing key and val of partition key
-        e.g. {'name': 'date', 'value': '2017-02-12'}
+        e.g. {"name": "date", "value": "2017-02-12"}
         @index_name (optional): Name of the Global Secondary Index
         """
 
-        pk = partition_filter['key']
-        pkv = partition_filter['value']
+        pk = partition_filter["key"]
+        pkv = partition_filter["value"]
         if not start_key:
             response = self.table.query(
                 KeyConditionExpression=Key(pk).eq(pkv)
@@ -244,11 +244,11 @@ class DynamoDBMetaStore(object):
                 ExclusiveStartKey=start_key
             )
         if not total_items:
-            total_items = response['Items']
+            total_items = response["Items"]
         else:
-            total_items.extend(response['Items'])
-        if response.get('LastEvaluatedKey'):
-            start_key = response['LastEvaluatedKey']
+            total_items.extend(response["Items"])
+        if response.get("LastEvaluatedKey"):
+            start_key = response["LastEvaluatedKey"]
             return_items = self.query_item(
                 partition_key=partition_filter, total_items=total_items,
                 start_key=start_key
