@@ -2,7 +2,7 @@
 from setuptools import setup, find_packages
 
 PROJECT = "dynamodb_meta_store"
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 
 try:
     long_description = open("./README.md", "rt").read()
@@ -34,9 +34,7 @@ setup(
     ],
     platforms=["Any"],
     install_requires=[
-        "urllib3<1.25,>=1.21.1",
-        "requests",
-        "boto3",
+        "boto3"
     ],
     extras_require={
         "dev": [
